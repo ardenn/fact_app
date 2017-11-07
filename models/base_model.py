@@ -7,20 +7,19 @@ db_host = os.environ.get("DB_HOST")
 db_user = os.environ.get("DB_USER")
 db_password = os.environ.get("DB_PASSWORD")
 
+
 class DBSingelton():
-	db = None
+    db = None
 
-	@classmethod
-	def getInstance(cls):
-		if not cls.db:
-			cls.db = PooledPostgresqlDatabase(db_name, **{'user': db_user,
-				'host': db_host,
-				'password': db_password})
+    @classmethod
+    def getInstance(cls):
+        if not cls.db:
+            cls.db = PooledPostgresqlDatabase(db_name, **{'user': db_user})
 
-		return cls.db
+        return cls.db
 
 
 class BaseModel(Model):
-	class Meta:
-		database = DBSingelton.getInstance()
-	
+
+    class Meta:
+        database = DBSingelton.getInstance()

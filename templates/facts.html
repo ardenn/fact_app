@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Facts{% endblock %}
+{% block content %}
+	{% for result in results %}
+		<h2>Fact #{{result.id}}</h2>
+		<div class="well">
+			<p><strong>Username:</strong> <code>{{result.user}}</code></p>
+			<p><strong>Fact:</strong> <code>{{result.fact}}</code></p>
+			<p><strong>Truth Value:</strong> <code>{{result.is_true}}</code></p>
+		</div>
+	{% endfor %}
+{% endblock %}
