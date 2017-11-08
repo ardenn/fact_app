@@ -3,6 +3,7 @@ from peewee import CharField, BooleanField, TextField, DateTimeField
 
 from datetime import datetime
 
+
 class FactModel(BaseModel):
     user = CharField(40)
     fact = TextField(20)
