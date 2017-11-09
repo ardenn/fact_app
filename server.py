@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-from flask import Flask, render_template, redirect, session, request, jsonify
+from flask import Flask, render_template, redirect, session, request, jsonify, g
 from models.fact_model import FactModel, User
 from models.base_model import DBSingelton
 import bcrypt
@@ -34,14 +34,16 @@ def disconnect_db(err=None):
 @app.route("/facts", methods=["POST", "GET"])
 def add_get_fact():
     if request.method == "POST":
-        if session.get("logged_in", False):
+        token = request.form.get("token")
+        user = User.verify_token(token)
+        if user:
             fact = request.form.get("fact")
-            user = request.form.get("user")
+            # user = request.form.get("user")
             is_true = int(request.form.get("is_true"))
-            new_fact = FactModel(user=user, fact=fact, is_true=is_true)
+            new_fact = FactModel(user=user.id, fact=fact, is_true=is_true)
             new_fact.save()
             return jsonify({"success": "created!"}), 201
-        return jsonify({"error": "forbidden!"}), 403
+        return jsonify({"error": "Aunthentication failed"}), 403
     results = FactModel.select().dicts()
     return jsonify({"data": list(results)})
 
@@ -85,12 +87,18 @@ def add_get_users():
 def login():
     name = request.form.get("name")
     password = request.form.get("password")
-    user = User.get(User.name == name)._data
-
-    session["logged_in"] = bcrypt.checkpw(
-        password.encode("utf-8"), user["password"].encode("utf-8"))
-    if session["logged_in"]:
+    user = User.get(User.name == name)
+    session["logged_in"] = [bcrypt.checkpw(
+        password.encode("utf-8"), user.password.encode("utf-8")), user.id]
+    if session["logged_in"][0]:
         return jsonify({"result": "success"})
     return jsonify({"error": "Login failed!"})
+
+
+@app.route("/api/token", methods=["GET"])
+def get_token():
+    user = User.get(User.id == session["logged_in"][1])
+    token = user.generate_token()
+    return jsonify({"token": token.decode("ascii")})
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
